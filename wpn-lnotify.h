@@ -28,7 +28,7 @@
 
 #include <string>
 
-int desktopNotify
+bool desktopNotify
 (
 	const std::string &title,
 	const std::string &body,
