@@ -2,8 +2,7 @@ AC_PREREQ([2.63])
 AC_INIT([libwpn-lnotify], [0.1], [andrei.i.ivanov@commandus.com])
 AM_INIT_AUTOMAKE([1.11 foreign no-define subdir-objects])
 
-
-LT_PREREQ([2.63])
+LT_PREREQ([2.2])
 LT_INIT([dlopen shared static])
 
 AC_CONFIG_FILES([Makefile])
@@ -23,9 +22,8 @@ LDFLAGS="$LDFLAGS -L/usr/local/lib"
 AC_CHECK_LIB([notify], [notify_init], [], AC_MSG_ERROR([*** linbotify is required ***]))
 
 # Checks for header files. Add /usr/local/include for IS X.
-CFLAGS="$CFLAGS -I/usr/local/include"
-AC_CHECK_HEADERS([libnotify/notify.h], [], AC_MSG_ERROR([Could not find libnotify/notify.h. Try $ ./configure CFLAGS='-Iyour-curl-include-path]))
-AC_CHECK_HEADERS([fcntl.h limits.h stdint.h string.h sys/time.h termios.h unistd.h])
+CFLAGS="$CFLAGS -I/usr/local/include -I/usr/include -I/usr/include/glib-2.0"
+AC_CHECK_HEADERS([libnotify/notify.h fcntl.h limits.h stdint.h string.h sys/time.h termios.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 # AC_CHECK_HEADER_STDBOOL
