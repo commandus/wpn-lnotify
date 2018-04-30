@@ -13,5 +13,5 @@ int main (int argc, char **argv)
 		body = std::string(argv[2]);
 	else 
 		body = "body";
-	return desktopNotify(title, body);
+	return desktopNotify(title, body) ? 0 : -1;
 }
