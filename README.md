@@ -1,6 +1,6 @@
 # Web push notification command line interface client libnotify shared library
 
-wpn-lnotify.so
+libwpn-lnotify.so
 
 [Project description](https://docs.google.com/document/d/19pM4g-hvx2MUVV2Ggljw1MMTg9tMCEH7aHYYKpJMaWk/edit?usp=sharing)
 
@@ -46,3 +46,9 @@ This software depends on libraries which has differen licenses:
 
 - libnotify is licensed under GNU Lesser General Public; either version 2.1 of the License, or (at your option) any later version. LGPL-2.1
 
+
+## Test
+
+```
+LD_PRELOAD=./libwpm-lnotify.so ./wpn
+```
