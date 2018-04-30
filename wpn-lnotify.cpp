@@ -5,7 +5,7 @@
 
 static const std::string APP_NAME("wpn");
 
-int desktopNotify
+bool desktopNotify
 (
 	const std::string &title,
 	const std::string &body,
@@ -26,10 +26,7 @@ int desktopNotify
 		timeout = 10000;	// 10 seconds
     notify_notification_set_timeout(notification, timeout); 
 
-    if (!notify_notification_show(notification, NULL)) 
-    {
-        return -1;
-    }
-    // notify_notification_close(notification, NULL);
-	return 0;
+    bool r = notify_notification_show(notification, NULL));
+    g_object_unref(G_OBJECT(notification));
+	return r;
 }
