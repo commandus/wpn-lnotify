@@ -1,17 +1,25 @@
 # Web push notification command line interface client libnotify shared library
 
-libwpn-lnotify.so
+Shared libraries
+
+- libwpn-lnotify.so Send notification to DBus using libnotify
+- libwpn-stdout.so	Print notification to stdour
 
 [Project description](https://docs.google.com/document/d/19pM4g-hvx2MUVV2Ggljw1MMTg9tMCEH7aHYYKpJMaWk/edit?usp=sharing)
 
+
 ## Dependencies
 
-- libnotify 1.1.0 https://github.com/GNOME/libnotify/
+- GTK+ 3
+- libnotify 0.7.7 https://github.com/GNOME/libnotify/
+
+```
+sudo apt install build-essential libgtk-3-dev libnotify-dev
+```
 
 ## Tools
 
 - Autoconf 2.63
-- CMake 3.1 or higher
 
 ## Building
 
@@ -51,4 +59,8 @@ This software depends on libraries which has differen licenses:
 
 ```
 LD_PRELOAD=./libwpm-lnotify.so ./wpn
+```
+
+```
+./wpn-lnotify "Test Title" "Messafe" .libs/libwpn-lnotify.so
 ```

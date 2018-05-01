@@ -28,7 +28,9 @@
 
 #include <string>
 
-extern "C" 
+static const std::string APP_NAME("wpn");
+
+extern "C"
 bool desktopNotify
 (
 	const std::string &title,

@@ -6,10 +6,10 @@ commoncppflags = -std=c++11 -O2 -I/usr/local/include -Ithird_party -I/usr/includ
 #
 #	Libraries
 #
-lib_LTLIBRARIES = libwpn-lnotify.la
+lib_LTLIBRARIES = libwpn-lnotify.la libwpn-stdout.la
 
 nobase_dist_include_HEADERS = \
-	wpn-lnotify.h
+	wpn-notify.h
 common_src = 
 commonlibs = -L/usr/local/lib/ -lnotify
 
@@ -21,6 +21,17 @@ libwpn_lnotify_la_SOURCES = \
 	$(common_src)
 libwpn_lnotify_la_CPPFLAGS = $(commoncppflags)
 libwpn_lnotify_la_LIBADD = $(commonlibs)
+libwpn_lnotify_la_LDFLAGS = -version-info 0:0:0
+
+#
+#	libwpn-stdout.la
+#
+libwpn_stdout_la_SOURCES = \
+	wpn-stdout.cpp \
+	$(common_src)
+libwpn_stdout_la_CPPFLAGS = $(commoncppflags)
+libwpn_stdout_la_LIBADD = $(commonlibs)
+libwpn_stdout_la_LDFLAGS = -version-info 0:0:0
 
 #
 #	Configs, readme, CMake etc.
@@ -42,9 +53,7 @@ bin_PROGRAMS = wpn-lnotify
 wpn_lnotify_SOURCES= \
 	test/main.cpp \
 	$(common_src)
-
-wpn_lnotify_LDADD = $(commonlibs) -lwpn-lnotify
+wpn_lnotify_LDADD = $(commonlibs) -ldl
 wpn_lnotify_CPPFLAGS = $(commoncppflags)
-
 
 

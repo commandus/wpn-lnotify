@@ -3,7 +3,7 @@ AC_INIT([libwpn-lnotify], [0.1], [andrei.i.ivanov@commandus.com])
 AM_INIT_AUTOMAKE([1.11 foreign no-define subdir-objects])
 
 LT_PREREQ([2.2])
-LT_INIT([dlopen shared static])
+LT_INIT([dlopen shared])
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_SRCDIR([wpn-lnotify.cpp])

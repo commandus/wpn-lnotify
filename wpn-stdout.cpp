@@ -1,6 +1,5 @@
 #include <string>
-#include <glib-object.h>
-#include <libnotify/notify.h>
+#include <iostream>
 
 #include "wpn-notify.h"
 
@@ -19,19 +18,8 @@ bool desktopNotify
 	const std::string &extra
 )
 {
-
-	notify_init(APP_NAME.c_str());
-    NotifyNotification *notification = notify_notification_new
-    (
-		title.empty() ? NULL : title.c_str(),
-		body.empty() ? NULL : body.c_str(),
-		icon.empty() ? NULL : icon.c_str()
-	);
-	if (!notification)
-		return false;
-    notify_notification_set_timeout(notification, timeout <= 0 ? 10000 : timeout); 	// 10 seconds
-
-    bool r = notify_notification_show(notification, NULL);
-    g_object_unref(G_OBJECT(notification));
-	return r;
+	std::cout 
+		<< (title.empty() ? "" : title) << "\t"
+		<< (body.empty() ? "" : body) << std::endl;
+	return true;
 }
