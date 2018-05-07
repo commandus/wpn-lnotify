@@ -31,10 +31,15 @@ int main (int argc, char **argv)
 	}
   
 	desktopNotifyFunc desktopNotify = (desktopNotifyFunc) dlsym(so, "desktopNotify");
+	NotifyMessage request;
+	NotifyMessage response;
+
+	request.title = title;
+	request.body = body;
+
 	bool r = (*desktopNotify)(
-		"", "", "", 0,
-		"", title, body, "", "", "", "", 0, 0, "", "", "") ? 0 : -1;
+		"", "", "", "", 0,
+		&request, &response);
 	dlclose(so);
 	return r;
-	
 }
