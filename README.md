@@ -25,18 +25,34 @@ sudo apt install build-essential libgtk-3-dev libnotify-dev
 
 C++11 compliant compiler required.
 
+### Linux
+
 ```
 cd wpn-lnotify
 ./autogen.sh
 ./configure
 make
 ```
-
 If you want, install:
 
 ```
 sudo make install
 ```
+
+### Windows
+
+Visual Studio, cmake required.
+
+Open command line prompt, enter:
+
+```
+cd wpn-lnotify
+mkdir build
+cd build
+cmake ..
+```
+
+Open wpn-lnotify.sln solution file.
 
 ## License
 
