@@ -14,7 +14,7 @@ common_src =
 commonlibs = -L/usr/local/lib/ -lnotify
 
 #
-#	libwpn-lnotify.la
+#	libwpn-lnotify.so
 #
 libwpn_lnotify_la_SOURCES = \
 	wpn-lnotify.cpp \
@@ -24,7 +24,7 @@ libwpn_lnotify_la_LIBADD = $(commonlibs)
 libwpn_lnotify_la_LDFLAGS = -version-info 0:0:0
 
 #
-#	libwpn-stdout.la
+#	libwpn-stdout.so
 #
 libwpn_stdout_la_SOURCES = \
 	wpn-stdout.cpp \
