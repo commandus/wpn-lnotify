@@ -1,5 +1,8 @@
 #include <string>
 #ifdef _MSC_VER
+#include <Windows.h>
+#include <iostream>
+#include "DesktopToast.h"
 #else
 #include <glib-object.h>
 #include <libnotify/notify.h>
@@ -7,6 +10,60 @@
 #include "wpn-notify.h"
 
 #ifdef _MSC_VER
+static DesktopToast *app = nullptr;
+
+BOOL init()
+{
+	CoInitialize(nullptr);
+	app = new DesktopToast();
+	app->Initialize(nullptr);
+	/*
+	RoInitializeWrapper winRtInitializer(RO_INIT_MULTITHREADED);
+	HRESULT hr = winRtInitializer;
+	if (SUCCEEDED(hr))
+	{
+		app = new DesktopToast();
+		hr = app->Initialize(hInstance);
+		if (SUCCEEDED(hr))
+		{
+			app->RunMessageLoop();
+		}
+	}
+	return SUCCEEDED(hr);
+	*/
+	return app != NULL;
+}
+
+void done()
+{
+	if (app)
+	{
+		delete app;
+		app = nullptr;
+	}
+	CoUninitialize();
+}
+
+BOOL WINAPI DllMain(
+	_In_ HINSTANCE hinstDLL,
+	_In_ DWORD     fdwReason,
+	_In_ LPVOID    lpvReserved
+)
+{
+	switch (fdwReason)
+	{
+	case DLL_PROCESS_DETACH:
+		std::cout << "Detach.." << std::endl;
+		done();
+		break;
+	case DLL_PROCESS_ATTACH:
+		std::cout << "Attach.." << std::endl;
+		init();
+		break;
+	}
+	return true;
+}
+
 extern "C"
 bool desktopNotify
 (
@@ -20,8 +77,9 @@ bool desktopNotify
 	NotifyMessage *reply
 )
 {
-	if (!request)
+	if ((!request) || (!app))
 		return false;
+	app->DisplayToast();
 	return false;
 }
 #else
