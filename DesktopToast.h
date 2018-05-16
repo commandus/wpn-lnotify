@@ -12,7 +12,10 @@
 #include <wrl.h>
 #include <wrl\wrappers\corewrappers.h>
 #include <windows.ui.notifications.h>
+#include <vector>
+#include <string>
 #include "NotificationActivationCallback.h"
+#include "wpn-notify.h"
 
 //  Name:     System.AppUserModel.ToastActivatorCLSID -- PKEY_AppUserModel_ToastActivatorCLSID
 //  Type:     Guid -- VT_CLSID
@@ -40,13 +43,7 @@ public:
 	static DesktopToast* GetInstance();
 	DesktopToast();
 	~DesktopToast();
-	HRESULT Initialize(_In_ HINSTANCE hInstance);
-	void RunMessageLoop();
-
-	HRESULT SetMessage(PCWSTR message);
-
-	HRESULT DisplayToast();
-
+	HRESULT DisplayToast(const NotifyMessage *request);
 private:
 	HRESULT RegisterAppForNotificationSupport();
 	HRESULT InstallShortcut(_In_ PCWSTR shortcutPath, _In_ PCWSTR exePath);
@@ -55,30 +52,22 @@ private:
 	HRESULT RegisterActivator();
 	void UnregisterActivator();
 
-	static LRESULT CALLBACK WndProc(
-		_In_ HWND hWnd,
-		_In_ UINT message,
-		_In_ WPARAM wParam,
-		_In_ LPARAM lParam
-	);
-
-
 	HRESULT CreateToastXml(
 		_In_ ABI::Windows::UI::Notifications::IToastNotificationManagerStatics* toastManager,
-		_COM_Outptr_ ABI::Windows::Data::Xml::Dom::IXmlDocument** xml
+		_COM_Outptr_ ABI::Windows::Data::Xml::Dom::IXmlDocument** xml,
+		const NotifyMessage *request
 	);
-
 	HRESULT CreateToast(
 		_In_ ABI::Windows::UI::Notifications::IToastNotificationManagerStatics* toastManager,
 		_In_ ABI::Windows::Data::Xml::Dom::IXmlDocument* xml
+		
 	);
 	HRESULT DesktopToast::SetImageSrc(
 		_In_ PCWSTR imagePath,
 		_In_ ABI::Windows::Data::Xml::Dom::IXmlDocument* toastXml
 	);
 	HRESULT DesktopToast::SetTextValues(
-		_In_reads_(textValuesCount) const PCWSTR* textValues,
-		_In_ UINT32 textValuesCount,
+		const std::vector<std::string> &lines,
 		_Inout_ ABI::Windows::Data::Xml::Dom::IXmlDocument* toastXml
 	);
 	HRESULT DesktopToast::SetNodeValueString(
@@ -86,15 +75,8 @@ private:
 		_Inout_ ABI::Windows::Data::Xml::Dom::IXmlNode* node,
 		_In_ ABI::Windows::Data::Xml::Dom::IXmlDocument* xml
 	);
-
-	HWND m_hwnd = nullptr;
-	HWND m_hEdit = nullptr;
-
-	static const WORD HM_TEXTBUTTON = 1;
-
 	static DesktopToast* s_currentInstance;
 };
-
 
 // For the app to be activated from Action Center, it needs to provide a COM server to be called
 // when the notification is activated.  The CLSID of the object needs to be registered with the

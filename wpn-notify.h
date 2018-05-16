@@ -25,6 +25,8 @@
  * @file wpn-lnotify.cpp
  * 
  */
+#ifndef WPN_NOTIFY_H
+#define WPN_NOTIFY_H
 
 #include <string>
 
@@ -71,3 +73,5 @@ bool desktopNotify
 	const NotifyMessage *notification,
 	NotifyMessage *reply
 );
+
+#endif

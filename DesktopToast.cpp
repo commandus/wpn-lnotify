@@ -1,30 +1,31 @@
-#include "DesktopToast.h" 
+#include "DesktopToast.h"
 
 const wchar_t AppId[] = L"wpn.toast.win";
 const char WINDOW_CLASS_NAME[] = "wpnToast";
 const char WINDOW_TITLE[] = "wpn toast";
 DesktopToast* DesktopToast::s_currentInstance = nullptr;
 
+std::wstring utf8wstring(const std::string& s, const UINT codepage = CP_UTF8)
+{
+	int len;
+	int slength = (int) s.length() + 1;
+	len = MultiByteToWideChar(codepage, 0, s.c_str(), slength, 0, 0);
+	wchar_t* buf = new wchar_t[len];
+	MultiByteToWideChar(codepage, 0, s.c_str(), slength, buf, len);
+	std::wstring r(buf);
+	delete[] buf;
+	return r;
+}
+
 DesktopToast *DesktopToast::GetInstance()
 {
 	return s_currentInstance;
 }
 
-HRESULT STDMETHODCALLTYPE NotificationActivator::Activate
-(
-		_In_ LPCWSTR /*appUserModelId*/,
-		_In_ LPCWSTR /*invokedArgs*/,
-		/*_In_reads_(dataCount)*/ const NOTIFICATION_USER_INPUT_DATA* /*data*/,
-		ULONG /*dataCount*/
-)
-{
-	return DesktopToast::GetInstance()->SetMessage(L"NotificationActivator - The user clicked on the toast.");
-}
-CoCreatableClass(NotificationActivator);
-
 DesktopToast::DesktopToast()
 {
 	s_currentInstance = this;
+	HRESULT hr = RegisterAppForNotificationSupport();
 }
 
 DesktopToast::~DesktopToast()
@@ -162,94 +163,12 @@ HRESULT DesktopToast::RegisterActivator()
 void DesktopToast::UnregisterActivator()
 {
 	Module<OutOfProc>::GetModule().UnregisterObjects();
-
 	Module<OutOfProc>::GetModule().DecrementObjectCount();
-}
-
-// Prepare the main window
-_Use_decl_annotations_
-HRESULT DesktopToast::Initialize(HINSTANCE hInstance)
-{
-	HRESULT hr = RegisterAppForNotificationSupport();
-	/*
-	if (SUCCEEDED(hr))
-	{
-		WNDCLASSEX wcex = { sizeof(wcex) };
-		// Register window class
-		wcex.style = CS_HREDRAW | CS_VREDRAW;
-		wcex.lpfnWndProc = DesktopToast::WndProc;
-		wcex.cbWndExtra = sizeof(LONG_PTR);
-		wcex.hInstance = hInstance;
-		wcex.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
-		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
-		wcex.lpszClassName = WINDOW_CLASS_NAME;
-		wcex.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);
-		::RegisterClassEx(&wcex);
-
-		// Create window
-		m_hwnd = CreateWindow(
-			WINDOW_CLASS_NAME,
-			WINDOW_TITLE,
-			WS_OVERLAPPEDWINDOW,
-			CW_USEDEFAULT, CW_USEDEFAULT,
-			350, 200,
-			nullptr, nullptr,
-			hInstance, this);
-
-		hr = m_hwnd ? S_OK : E_FAIL;
-		if (SUCCEEDED(hr))
-		{
-			::CreateWindowA(
-				"BUTTON",
-				"View Text Toast",
-				BS_PUSHBUTTON | WS_CHILD | WS_VISIBLE,
-				0, 0, 150, 25,
-				m_hwnd, reinterpret_cast<HMENU>(HM_TEXTBUTTON),
-				hInstance, nullptr);
-			m_hEdit = ::CreateWindowA(
-				"EDIT",
-				"Whatever action you take on the displayed toast will be shown here.",
-				ES_LEFT | ES_MULTILINE | ES_READONLY | WS_CHILD | WS_VISIBLE | WS_BORDER,
-				0, 30, 300, 50,
-				m_hwnd, nullptr,
-				hInstance, nullptr);
-
-			::ShowWindow(m_hwnd, SW_SHOWNORMAL);
-			::UpdateWindow(m_hwnd);
-		}
-	}
-
-	if (SUCCEEDED(hr))
-	{
-		hr = RegisterActivator();
-	}
-	*/
-	return hr;
-}
-
-// Standard message loop
-void DesktopToast::RunMessageLoop()
-{
-	MSG msg;
-	while (GetMessage(&msg, nullptr, 0, 0))
-	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}
-}
-
-HRESULT DesktopToast::SetMessage(PCWSTR message)
-{
-	::SetForegroundWindow(m_hwnd);
-
-	::SendMessage(m_hEdit, WM_SETTEXT, reinterpret_cast<WPARAM>(nullptr), reinterpret_cast<LPARAM>(message));
-
-	return S_OK;
 }
 
 // Display the toast using classic COM. Note that is also possible to create and
 // display the toast using the new C++ /ZW options (using handles, COM wrappers, etc.)
-HRESULT DesktopToast::DisplayToast()
+HRESULT DesktopToast::DisplayToast(const NotifyMessage *request)
 {
 	ComPtr<IToastNotificationManagerStatics> toastStatics;
 	HRESULT hr = Windows::Foundation::GetActivationFactory(
@@ -258,7 +177,7 @@ HRESULT DesktopToast::DisplayToast()
 	if (SUCCEEDED(hr))
 	{
 		ComPtr<IXmlDocument> toastXml;
-		hr = CreateToastXml(toastStatics.Get(), &toastXml);
+		hr = CreateToastXml(toastStatics.Get(), &toastXml, request);
 		if (SUCCEEDED(hr))
 		{
 			hr = CreateToast(toastStatics.Get(), toastXml.Get());
@@ -269,7 +188,12 @@ HRESULT DesktopToast::DisplayToast()
 
 // Create the toast XML from a template
 _Use_decl_annotations_
-HRESULT DesktopToast::CreateToastXml(IToastNotificationManagerStatics* toastManager, IXmlDocument** inputXml)
+HRESULT DesktopToast::CreateToastXml
+(
+	IToastNotificationManagerStatics* toastManager, 
+	IXmlDocument** inputXml, 
+	const NotifyMessage *request
+)
 {
 	*inputXml = nullptr;
 
@@ -284,15 +208,14 @@ HRESULT DesktopToast::CreateToastXml(IToastNotificationManagerStatics* toastMana
 			hr = SetImageSrc(imagePath, *inputXml);
 			if (SUCCEEDED(hr))
 			{
-				const PCWSTR textValues[] = {
-					L"Line 1",
-					L"Line 2",
-					L"Line 3"
-				};
-
-				hr = SetTextValues(textValues, ARRAYSIZE(textValues), *inputXml);
+				std::vector<std::string> a;
+				if (request)
+				{
+					a.push_back(request->title);
+					a.push_back(request->body);
+				}
+				hr = SetTextValues(a, *inputXml);
 			}
-
 			free(imagePath);
 		}
 	}
@@ -338,7 +261,11 @@ HRESULT DesktopToast::SetImageSrc(PCWSTR imagePath, IXmlDocument* toastXml)
 
 // Set the values of each of the text nodes
 _Use_decl_annotations_
-HRESULT DesktopToast::SetTextValues(const PCWSTR* textValues, UINT32 textValuesCount, IXmlDocument* toastXml)
+HRESULT DesktopToast::SetTextValues
+(
+	const std::vector<std::string> &lines, 
+	IXmlDocument* toastXml
+)
 {
 	ComPtr<IXmlNodeList> nodeList;
 	HRESULT hr = toastXml->GetElementsByTagName(HStringReference(L"text").Get(), &nodeList);
@@ -348,18 +275,19 @@ HRESULT DesktopToast::SetTextValues(const PCWSTR* textValues, UINT32 textValuesC
 		hr = nodeList->get_Length(&nodeListLength);
 		if (SUCCEEDED(hr))
 		{
-			// If a template was chosen with fewer text elements, also change the amount of strings
-			// passed to this method.
-			hr = textValuesCount <= nodeListLength ? S_OK : E_INVALIDARG;
+			// If a template was chosen with fewer text elements, also change the amount of strings passed to this method.
+			hr = lines.size() <= nodeListLength ? S_OK : E_INVALIDARG;
 			if (SUCCEEDED(hr))
 			{
-				for (UINT32 i = 0; i < textValuesCount; i++)
+				for (UINT32 i = 0; i < lines.size(); i++)
 				{
 					ComPtr<IXmlNode> textNode;
 					hr = nodeList->Item(i, &textNode);
 					if (SUCCEEDED(hr))
 					{
-						hr = SetNodeValueString(HStringReference(textValues[i]).Get(), textNode.Get(), toastXml);
+						std::wstring s = utf8wstring(lines[i]);
+						LPCWSTR v = s.c_str();
+						hr = SetNodeValueString(HStringReference(v).Get(), textNode.Get(), toastXml);
 					}
 				}
 			}
@@ -390,7 +318,11 @@ HRESULT DesktopToast::SetNodeValueString(HSTRING inputString, IXmlNode* node, IX
 
 // Create and display the toast
 _Use_decl_annotations_
-HRESULT DesktopToast::CreateToast(IToastNotificationManagerStatics* toastManager, IXmlDocument* xml)
+HRESULT DesktopToast::CreateToast
+(
+	IToastNotificationManagerStatics* toastManager, 
+	IXmlDocument* xml
+)
 {
 	ComPtr<IToastNotifier> notifier;
 	HRESULT hr = toastManager->CreateToastNotifierWithId(HStringReference(AppId).Get(), &notifier);
@@ -415,16 +347,18 @@ HRESULT DesktopToast::CreateToast(IToastNotificationManagerStatics* toastManager
 
 				using namespace ABI::Windows::Foundation;
 
-				hr = toast->add_Activated(
+				hr = toast->add_Activated
+				(
 					Callback < Implements < RuntimeClassFlags<ClassicCom>,
 					ITypedEventHandler<ToastNotification*, IInspectable* >> >(
-						[](IToastNotification*, IInspectable*)
+						[](IToastNotification*, IInspectable*
+				)
 				{
 					// When the user clicks or taps on the toast, the registered
 					// COM object is activated, and the Activated event is raised.
 					// There is no guarantee which will happen first. If the COM
 					// object is activated first, then this message may not show.
-					DesktopToast::GetInstance()->SetMessage(L"The user clicked on the toast.");
+					// TODO add some reaction
 					return S_OK;
 				}).Get(),
 					&activatedToken);
@@ -455,7 +389,7 @@ HRESULT DesktopToast::CreateToast(IToastNotificationManagerStatics* toastManager
 								break;
 							}
 
-							DesktopToast::GetInstance()->SetMessage(outputText);
+							// TODO show result outputText
 						}
 						return S_OK;
 					}).Get(),
@@ -466,7 +400,7 @@ HRESULT DesktopToast::CreateToast(IToastNotificationManagerStatics* toastManager
 							ITypedEventHandler<ToastNotification*, ToastFailedEventArgs* >> >(
 								[](IToastNotification*, IToastFailedEventArgs* /*e */)
 						{
-							DesktopToast::GetInstance()->SetMessage(L"The toast encountered an error.");
+							// TODO Show error "The toast encountered an error."
 							return S_OK;
 						}).Get(),
 							&failedToken);
@@ -484,52 +418,16 @@ HRESULT DesktopToast::CreateToast(IToastNotificationManagerStatics* toastManager
 	return hr;
 }
 
-// Standard window procedure
-_Use_decl_annotations_
-LRESULT CALLBACK DesktopToast::WndProc(HWND hwnd, UINT32 message, WPARAM wParam, LPARAM lParam)
+HRESULT STDMETHODCALLTYPE NotificationActivator::Activate
+(
+	_In_ LPCWSTR /*appUserModelId*/,
+	_In_ LPCWSTR /*invokedArgs*/,
+	/*_In_reads_(dataCount)*/ const NOTIFICATION_USER_INPUT_DATA* /*data*/,
+	ULONG /*dataCount*/
+)
 {
-	if (message == WM_CREATE)
-	{
-		auto pcs = reinterpret_cast<LPCREATESTRUCT>(lParam);
-		auto app = reinterpret_cast<DesktopToast *>(pcs->lpCreateParams);
-
-		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(app));
-
-		return 1;
-	}
-
-	auto app = reinterpret_cast<DesktopToast *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
-	if (app)
-	{
-		switch (message)
-		{
-		case WM_COMMAND:
-		{
-			int wmId = LOWORD(wParam);
-			switch (wmId)
-			{
-			case DesktopToast::HM_TEXTBUTTON:
-				app->DisplayToast();
-				break;
-			default:
-				return DefWindowProc(hwnd, message, wParam, lParam);
-			}
-		}
-		break;
-		case WM_PAINT:
-		{
-			PAINTSTRUCT ps;
-			BeginPaint(hwnd, &ps);
-			EndPaint(hwnd, &ps);
-		}
-		return 0;
-
-		case WM_DESTROY:
-		{
-			PostQuitMessage(0);
-		}
-		return 1;
-		}
-	}
-	return DefWindowProc(hwnd, message, wParam, lParam);
+	// TODO "NotificationActivator - The user clicked on the toast." << std::endl;
+	return S_OK;
 }
+
+CoCreatableClass(NotificationActivator);
