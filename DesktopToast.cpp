@@ -1,9 +1,11 @@
 #include "DesktopToast.h"
+// #include <urlmon.h>
 
 const wchar_t AppId[] = L"wpn.toast.win";
 const char WINDOW_CLASS_NAME[] = "wpnToast";
 const char WINDOW_TITLE[] = "wpn toast";
-DesktopToast* DesktopToast::s_currentInstance = nullptr;
+
+#define DEF_ICON L"default.png"
 
 std::wstring utf8wstring(const std::string& s, const UINT codepage = CP_UTF8)
 {
@@ -17,21 +19,14 @@ std::wstring utf8wstring(const std::string& s, const UINT codepage = CP_UTF8)
 	return r;
 }
 
-DesktopToast *DesktopToast::GetInstance()
-{
-	return s_currentInstance;
-}
-
 DesktopToast::DesktopToast()
 {
-	s_currentInstance = this;
 	HRESULT hr = RegisterAppForNotificationSupport();
 }
 
 DesktopToast::~DesktopToast()
 {
 	UnregisterActivator();
-	s_currentInstance = nullptr;
 }
 
 // In order to display toasts, a desktop application must have a shortcut on the Start menu.
@@ -201,7 +196,8 @@ HRESULT DesktopToast::CreateToastXml
 	HRESULT hr = toastManager->GetTemplateContent(ToastTemplateType_ToastImageAndText04, inputXml);
 	if (SUCCEEDED(hr))
 	{
-		PWSTR imagePath = _wfullpath(nullptr, L"toastImageAndText.png", MAX_PATH);
+		// hr = URLDownloadToFileW(0, L"https://commandus.com/i/c.png", L"toastImageAndText.png", 0, 0);
+		PWSTR imagePath = _wfullpath(nullptr, DEF_ICON, MAX_PATH);
 		hr = imagePath != nullptr ? S_OK : HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
 		if (SUCCEEDED(hr))
 		{

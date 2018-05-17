@@ -9,14 +9,21 @@
 #endif
 
 #ifdef _MSC_VER
+static DesktopToast *toast = nullptr;
 
 void init()
 {
 	CoInitialize(nullptr);
+	toast = new DesktopToast();
 }
 
 void done()
 {
+	if (toast)
+	{
+		delete toast;
+		toast = nullptr;
+	}
 }
 
 BOOL WINAPI DllMain(
@@ -50,10 +57,9 @@ bool desktopNotify
 	NotifyMessage *reply
 )
 {
-	if (!request)
+	if (!request || !toast)
 		return false;
-	DesktopToast t;
-	t.DisplayToast(request);
+	toast->DisplayToast(request);
 	return false;
 }
 #else

@@ -8,7 +8,7 @@ file(GLOB SOURCE_STDOUT wpn-stdout.cpp)
 file(GLOB HEADERS_STDOUT wpn-notify.h)
 
 if (MSVC)
-	set(NOTIFYLIBS Pathcch.lib runtimeobject.lib shlwapi.lib)
+	set(NOTIFYLIBS Pathcch.lib runtimeobject.lib shlwapi.lib)	# Urlmon.lib
 	file(GLOB SOURCE_LNOTIFY wpn-lnotify.cpp DesktopToast.cpp)
 	file(GLOB HEADERS_LNOTIFY wpn-notify.h DesktopToast.h)
 else (MSVC)

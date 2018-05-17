@@ -40,7 +40,6 @@ typedef HandleT<CoTaskMemStringTraits> CoTaskMemString;
 class DesktopToast
 {
 public:
-	static DesktopToast* GetInstance();
 	DesktopToast();
 	~DesktopToast();
 	HRESULT DisplayToast(const NotifyMessage *request);
@@ -75,7 +74,6 @@ private:
 		_Inout_ ABI::Windows::Data::Xml::Dom::IXmlNode* node,
 		_In_ ABI::Windows::Data::Xml::Dom::IXmlDocument* xml
 	);
-	static DesktopToast* s_currentInstance;
 };
 
 // For the app to be activated from Action Center, it needs to provide a COM server to be called
