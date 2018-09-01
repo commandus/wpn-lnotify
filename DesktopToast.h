@@ -12,6 +12,7 @@
 #include <wrl.h>
 #include <wrl\wrappers\corewrappers.h>
 #include <windows.ui.notifications.h>
+
 #include <vector>
 #include <string>
 #include "NotificationActivationCallback.h"
@@ -81,7 +82,7 @@ private:
 // OS via its shortcut so that it knows who to call later.
 class DECLSPEC_UUID("23A5B06E-20BB-4E7E-A0AC-6982ED6A6041") NotificationActivator WrlSealed
 	: public RuntimeClass < RuntimeClassFlags<ClassicCom>,
-	INotificationActivationCallback > WrlFinal
+	INotificationActivationCallback > // BUGBUG WrlFinal
 {
 public:
 	virtual HRESULT STDMETHODCALLTYPE Activate
