@@ -58,12 +58,10 @@ int main (int argc, char **argv)
 #endif	
 
 	NotifyMessage request;
-	NotifyMessage response;
-
 	request.title = title;
 	request.body = body;
 
-	bool r = (*desktopNotify)(NULL, "", "", "", "", 0, &request, &response);
+	bool r = (*desktopNotify)(NULL, "", "", "", "", 0, &request);
 #ifdef _MSC_VER
 	std::string s;
 	std::cout << "Enter message or" <<std::endl << "q to exit" << std::endl;
@@ -73,7 +71,7 @@ int main (int argc, char **argv)
 		if (s == "q")
 			break;
 		request.body = s;
-		r = (*desktopNotify)(NULL, "", "", "", "", 0, &request, &response);
+		r = (*desktopNotify)(NULL, "", "", "", "", 0, &request);
 	}
 	FreeLibrary(so);
 #else
