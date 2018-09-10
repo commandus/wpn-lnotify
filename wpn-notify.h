@@ -1,3 +1,5 @@
+#ifndef WPN_NOTIFY_H
+#define WPN_NOTIFY_H
 /**
  * Copyright (c) 2018 Andrei Ivanov <andrei.i.ivanov@commandus.com>
  * 
@@ -25,13 +27,12 @@
  * @file wpn-lnotify.cpp
  * 
  */
-#ifndef WPN_NOTIFY_H
-#define WPN_NOTIFY_H
 
 #include <string>
 
 static const std::string APP_NAME("wpn");
 
+/*
 typedef struct
 {
 	std::string authorizedEntity;	///< e.g. 246829423295
@@ -49,7 +50,7 @@ typedef struct
 } NotifyMessage;
 
 // return true if has reply
-typedef bool (*OnNotifyFunc)
+typedef void (*OnNotifyFunc)
 (
 	void *env,
 	const std::string &persistent_id,
@@ -57,22 +58,62 @@ typedef bool (*OnNotifyFunc)
 	const std::string &appName,
 	const std::string &appId,
 	int64_t sent,
- 
-	const NotifyMessage *request
+ 	const NotifyMessage *request
+);
+
+typedef void(*OnLogFunc)
+(
+	void *env,
+	int severity,
+	const std::string &message
+);
+
+*/
+
+typedef struct
+{
+	const char *authorizedEntity;	///< e.g. 246829423295
+	const char *title;
+	const char *body;
+	const char *icon;				///< Specifies an icon filename or stock icon to display.
+	const char *sound;				///< sound file name
+	const char *link;				///< click action
+	const char *linkType;			///< click action content type
+	int urgency; 					///< low- 0, normal, critical
+	int timeout; 					///< timeout in milliseconds at which to expire the notification.
+	const char *category;
+	const char *extra;
+	const char *data;				///< extra data in JSON format
+} NotifyMessageC;
+
+typedef void (*OnNotifyC)
+(
+	void *env,
+	const char *persistent_id,
+	const char *from,				///< e.g. BDOU99-h67HcA6JeFXHbSNMu7e2yNNu3RzoMj8TM4W88jITfq7ZmPvIM1Iv-4_l2LxQcYwhqby2xGpWwzjfAnG4
+	const char *appName,
+	const char *appId,
+	int64_t sent,
+	const NotifyMessageC *request
+);
+
+typedef void(*OnLogC)
+(
+	void *env,
+	int severity,
+	const char *message
 );
 
 extern "C"
 bool desktopNotify
 (
 	void *env,
-	const std::string &persistent_id,
-	const std::string &from,				///< e.g. BDOU99-h67HcA6JeFXHbSNMu7e2yNNu3RzoMj8TM4W88jITfq7ZmPvIM1Iv-4_l2LxQcYwhqby2xGpWwzjfAnG4
-	const std::string &appName,
-	const std::string &appId,
+	const char *persistent_id,
+	const char *from,
+	const char *appName,
+	const char *appId,
 	int64_t sent,
- 
-	const NotifyMessage *notification,
-	NotifyMessage *reply
+	const NotifyMessageC *notification
 );
 
 #endif

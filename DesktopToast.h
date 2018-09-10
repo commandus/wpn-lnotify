@@ -43,7 +43,7 @@ class DesktopToast
 public:
 	DesktopToast();
 	~DesktopToast();
-	HRESULT DisplayToast(const NotifyMessage *request);
+	HRESULT DisplayToast(const NotifyMessageC *request);
 private:
 	HRESULT RegisterAppForNotificationSupport();
 	HRESULT InstallShortcut(_In_ PCWSTR shortcutPath, _In_ PCWSTR exePath);
@@ -55,7 +55,7 @@ private:
 	HRESULT CreateToastXml(
 		_In_ ABI::Windows::UI::Notifications::IToastNotificationManagerStatics* toastManager,
 		_COM_Outptr_ ABI::Windows::Data::Xml::Dom::IXmlDocument** xml,
-		const NotifyMessage *request
+		const NotifyMessageC *request
 	);
 	HRESULT CreateToast(
 		_In_ ABI::Windows::UI::Notifications::IToastNotificationManagerStatics* toastManager,
@@ -75,20 +75,4 @@ private:
 		_Inout_ ABI::Windows::Data::Xml::Dom::IXmlNode* node,
 		_In_ ABI::Windows::Data::Xml::Dom::IXmlDocument* xml
 	);
-};
-
-// For the app to be activated from Action Center, it needs to provide a COM server to be called
-// when the notification is activated.  The CLSID of the object needs to be registered with the
-// OS via its shortcut so that it knows who to call later.
-class DECLSPEC_UUID("23A5B06E-20BB-4E7E-A0AC-6982ED6A6041") NotificationActivator WrlSealed
-	: public RuntimeClass < RuntimeClassFlags<ClassicCom>,
-	INotificationActivationCallback > // BUGBUG WrlFinal
-{
-public:
-	virtual HRESULT STDMETHODCALLTYPE Activate
-	(
-		_In_ LPCWSTR /*appUserModelId*/,
-		_In_ LPCWSTR /*invokedArgs*/,
-		/*_In_reads_(dataCount)*/ const NOTIFICATION_USER_INPUT_DATA* /*data*/,
-		ULONG /*dataCount*/) override;
 };

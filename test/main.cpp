@@ -46,7 +46,7 @@ int main (int argc, char **argv)
 		std::cerr << "Load library " << libfilename << " error " << errcode << ": " << message << std::endl;
 		exit(1);
 	}
-	OnNotifyFunc desktopNotify = (OnNotifyFunc)GetProcAddress(so, "desktopNotify");
+	OnNotifyC desktopNotify = (OnNotifyC) GetProcAddress(so, "desktopNotify");
 #else
 	void *so = dlopen(libfilename.c_str(), RTLD_LAZY);
 	if (!so)
@@ -57,11 +57,11 @@ int main (int argc, char **argv)
 	OnNotifyFunc desktopNotify = (OnNotifyFunc) dlsym(so, "desktopNotify");
 #endif	
 
-	NotifyMessage request;
-	request.title = title;
-	request.body = body;
+	NotifyMessageC request;
+	request.title = title.c_str();
+	request.body = body.c_str();
 
-	bool r = (*desktopNotify)(NULL, "", "", "", "", 0, &request);
+	(*desktopNotify)(NULL, "", "", "", "", 0, &request);
 #ifdef _MSC_VER
 	std::string s;
 	std::cout << "Enter message or" <<std::endl << "q to exit" << std::endl;
@@ -70,12 +70,12 @@ int main (int argc, char **argv)
 		std::cin >> s;
 		if (s == "q")
 			break;
-		request.body = s;
-		r = (*desktopNotify)(NULL, "", "", "", "", 0, &request);
+		request.body = s.c_str();
+		(*desktopNotify)(NULL, "", "", "", "", 0, &request);
 	}
 	FreeLibrary(so);
 #else
 	dlclose(so);
 #endif	
-	return r;
+	return 0;
 }

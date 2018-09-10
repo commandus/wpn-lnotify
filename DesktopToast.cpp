@@ -1,5 +1,7 @@
 #include "DesktopToast.h"
-// #include <urlmon.h>
+#include <NotificationActivationCallback.h>
+
+// see https://github.com/Microsoft/Windows-classic-samples/blob/master/Samples/DesktopToasts/CPP/DesktopToastsSample.cpp
 
 const wchar_t AppId[] = L"wpn.toast.win";
 const char WINDOW_CLASS_NAME[] = "wpnToast";
@@ -10,7 +12,7 @@ const char WINDOW_TITLE[] = "wpn toast";
 std::wstring utf8wstring(const std::string& s, const UINT codepage = CP_UTF8)
 {
 	int len;
-	int slength = (int) s.length() + 1;
+	int slength = (int)s.length() + 1;
 	len = MultiByteToWideChar(codepage, 0, s.c_str(), slength, 0, 0);
 	wchar_t* buf = new wchar_t[len];
 	MultiByteToWideChar(codepage, 0, s.c_str(), slength, buf, len);
@@ -22,11 +24,17 @@ std::wstring utf8wstring(const std::string& s, const UINT codepage = CP_UTF8)
 DesktopToast::DesktopToast()
 {
 	HRESULT hr = RegisterAppForNotificationSupport();
+	if (SUCCEEDED(hr))
+	{
+		// TODO 
+		// hr = RegisterActivator();
+	}
 }
 
 DesktopToast::~DesktopToast()
 {
-	UnregisterActivator();
+	// TODO
+	// UnregisterActivator();
 }
 
 // In order to display toasts, a desktop application must have a shortcut on the Start menu.
@@ -74,6 +82,25 @@ HRESULT DesktopToast::RegisterAppForNotificationSupport()
 	return hr;
 }
 
+// For the app to be activated from Action Center, it needs to provide a COM server to be called
+// when the notification is activated.  The CLSID of the object needs to be registered with the
+// OS via its shortcut so that it knows who to call later.
+class DECLSPEC_UUID("23A5B06E-20BB-4E7E-A0AC-6982ED6A6041") NotificationActivator WrlSealed
+	: public RuntimeClass < RuntimeClassFlags<ClassicCom>, INotificationActivationCallback > // WrlFinal
+{
+public:
+	virtual HRESULT STDMETHODCALLTYPE Activate(
+		_In_ LPCWSTR /*appUserModelId*/,
+		_In_ LPCWSTR /*invokedArgs*/,
+		/*_In_reads_(dataCount)*/ const NOTIFICATION_USER_INPUT_DATA* /*data*/,
+		ULONG /*dataCount*/) override
+	{
+		// return DesktopToast::GetInstance()->SetMessage(L"NotificationActivator - The user clicked on the toast.");
+		return S_OK;
+	}
+};
+CoCreatableClass(NotificationActivator);
+
 _Use_decl_annotations_
 HRESULT DesktopToast::InstallShortcut(PCWSTR shortcutPath, PCWSTR exePath)
 {
@@ -81,7 +108,7 @@ HRESULT DesktopToast::InstallShortcut(PCWSTR shortcutPath, PCWSTR exePath)
 	HRESULT hr = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&shellLink));
 	if (SUCCEEDED(hr))
 	{
-		hr = shellLink->SetPath((LPCSTR) exePath);
+		hr = shellLink->SetPath((LPCSTR)exePath);
 		if (SUCCEEDED(hr))
 		{
 			ComPtr<IPropertyStore> propertyStore;
@@ -163,7 +190,7 @@ void DesktopToast::UnregisterActivator()
 
 // Display the toast using classic COM. Note that is also possible to create and
 // display the toast using the new C++ /ZW options (using handles, COM wrappers, etc.)
-HRESULT DesktopToast::DisplayToast(const NotifyMessage *request)
+HRESULT DesktopToast::DisplayToast(const NotifyMessageC *request)
 {
 	ComPtr<IToastNotificationManagerStatics> toastStatics;
 	HRESULT hr = Windows::Foundation::GetActivationFactory(
@@ -185,9 +212,9 @@ HRESULT DesktopToast::DisplayToast(const NotifyMessage *request)
 _Use_decl_annotations_
 HRESULT DesktopToast::CreateToastXml
 (
-	IToastNotificationManagerStatics* toastManager, 
-	IXmlDocument** inputXml, 
-	const NotifyMessage *request
+	IToastNotificationManagerStatics* toastManager,
+	IXmlDocument** inputXml,
+	const NotifyMessageC *request
 )
 {
 	*inputXml = nullptr;
@@ -259,7 +286,7 @@ HRESULT DesktopToast::SetImageSrc(PCWSTR imagePath, IXmlDocument* toastXml)
 _Use_decl_annotations_
 HRESULT DesktopToast::SetTextValues
 (
-	const std::vector<std::string> &lines, 
+	const std::vector<std::string> &lines,
 	IXmlDocument* toastXml
 )
 {
@@ -316,7 +343,7 @@ HRESULT DesktopToast::SetNodeValueString(HSTRING inputString, IXmlNode* node, IX
 _Use_decl_annotations_
 HRESULT DesktopToast::CreateToast
 (
-	IToastNotificationManagerStatics* toastManager, 
+	IToastNotificationManagerStatics* toastManager,
 	IXmlDocument* xml
 )
 {
@@ -348,7 +375,7 @@ HRESULT DesktopToast::CreateToast
 					Callback < Implements < RuntimeClassFlags<ClassicCom>,
 					ITypedEventHandler<ToastNotification*, IInspectable* >> >(
 						[](IToastNotification*, IInspectable*
-				)
+							)
 				{
 					// When the user clicks or taps on the toast, the registered
 					// COM object is activated, and the Activated event is raised.
@@ -413,17 +440,3 @@ HRESULT DesktopToast::CreateToast
 	}
 	return hr;
 }
-
-HRESULT STDMETHODCALLTYPE NotificationActivator::Activate
-(
-	_In_ LPCWSTR /*appUserModelId*/,
-	_In_ LPCWSTR /*invokedArgs*/,
-	/*_In_reads_(dataCount)*/ const NOTIFICATION_USER_INPUT_DATA* /*data*/,
-	ULONG /*dataCount*/
-)
-{
-	// TODO "NotificationActivator - The user clicked on the toast." << std::endl;
-	return S_OK;
-}
-
-CoCreatableClass(NotificationActivator);
