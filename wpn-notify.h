@@ -32,44 +32,6 @@
 
 static const std::string APP_NAME("wpn");
 
-/*
-typedef struct
-{
-	std::string authorizedEntity;	///< e.g. 246829423295
-	std::string title;
-	std::string body;
-	std::string icon;				///< Specifies an icon filename or stock icon to display.
-	std::string sound;				///< sound file name
-	std::string link;				///< click action
-	std::string linkType;			///< click action content type
-	int urgency; 					///< low- 0, normal, critical
-	int timeout; 					///< timeout in milliseconds at which to expire the notification.
-	std::string category;
-	std::string extra;
-	std::string data;				///< extra data in JSON format
-} NotifyMessage;
-
-// return true if has reply
-typedef void (*OnNotifyFunc)
-(
-	void *env,
-	const std::string &persistent_id,
-	const std::string &from,				///< e.g. BDOU99-h67HcA6JeFXHbSNMu7e2yNNu3RzoMj8TM4W88jITfq7ZmPvIM1Iv-4_l2LxQcYwhqby2xGpWwzjfAnG4
-	const std::string &appName,
-	const std::string &appId,
-	int64_t sent,
- 	const NotifyMessage *request
-);
-
-typedef void(*OnLogFunc)
-(
-	void *env,
-	int severity,
-	const std::string &message
-);
-
-*/
-
 typedef struct
 {
 	const char *authorizedEntity;	///< e.g. 246829423295
@@ -85,6 +47,25 @@ typedef struct
 	const char *extra;
 	const char *data;				///< extra data in JSON format
 } NotifyMessageC;
+
+// return true if has reply
+typedef void (*OnNotifyC)
+(
+	void *env,
+	const char *persistent_id,
+	const char *from,				///< e.g. BDOU99-h67HcA6JeFXHbSNMu7e2yNNu3RzoMj8TM4W88jITfq7ZmPvIM1Iv-4_l2LxQcYwhqby2xGpWwzjfAnG4
+	const char *appName,
+	const char *appId,
+	int64_t sent,
+	const NotifyMessageC *request
+);
+
+typedef void(*OnLogC)
+(
+	void *env,
+	int severity,
+	const char *message
+);
 
 typedef void (*OnNotifyC)
 (

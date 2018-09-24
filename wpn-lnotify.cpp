@@ -80,9 +80,9 @@ bool desktopNotify
 	notify_init(APP_NAME.c_str());
     NotifyNotification *notification = notify_notification_new
     (
-		request->title.empty() ? NULL : request->title.c_str(),
-		request->body.empty() ? NULL : request->body.c_str(),
-		request->icon.empty() ? NULL : request->icon.c_str()
+		request->title,
+		request->body,
+		request->icon
 	);
 	if (!notification)
 		return false;
