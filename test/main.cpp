@@ -54,7 +54,7 @@ int main (int argc, char **argv)
 		std::cerr << "Load library " << libfilename  << " error " << dlerror() << std::endl;
 		exit(1);
 	}
-	OnNotifyFunc desktopNotify = (OnNotifyFunc) dlsym(so, "desktopNotify");
+	OnNotifyC desktopNotify = (OnNotifyC) dlsym(so, "desktopNotify");
 #endif	
 
 	NotifyMessageC request;
