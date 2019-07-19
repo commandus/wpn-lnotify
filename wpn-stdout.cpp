@@ -15,10 +15,14 @@ bool desktopNotify
 	const NotifyMessageC *request
 )
 {
+	std::cout 
+		<< (persistent_id ? persistent_id: "N/A") << "\t"
+		<< (from ? from : "N/A") << "\t"
+		<< (sent ? from : "N/A") << "\t";
 	if (!request)
 		return false;
 	std::cout 
-		<< (request->title ? "" : request->title) << "\t"
-		<< (request->body ? "" : request->body) << std::endl;
+		<< (request->title ? request->title : "No title") << "\t"
+		<< (request->body ? request->body : "No body") << std::endl;
 	return false;
 }
