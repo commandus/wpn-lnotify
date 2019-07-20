@@ -19,7 +19,7 @@ AC_PROG_INSTALL
 LDFLAGS="$LDFLAGS -L/usr/local/lib"
 
 # Checks for libraries. Add /usr/local/lib for OS X
-AC_CHECK_LIB([notify], [notify_init], [], AC_MSG_ERROR([*** linbotify is required ***]))
+AC_CHECK_LIB([notify], [notify_init], [], AC_MSG_ERROR([*** libnotify is required ***]))
 
 # Checks for header files. Add /usr/local/include for IS X.
 CFLAGS="$CFLAGS -I/usr/local/include -I/usr/include -I/usr/include/glib-2.0"
